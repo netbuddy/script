@@ -1,0 +1,57 @@
+#!/bin/bash
+
+function display_options() {
+    echo "1. 根据当前目录名称在github中创建仓库"
+    echo "2. 上传到github"
+    echo "3. 根据当前目录名称在gitee中创建仓库"
+    echo "4. 上传到gitee"
+    echo "5. 根据当前目录名称在本地gitea中创建仓库"
+    echo "6. 上传到本地gitea"
+    echo "7. 全部上传"
+}
+
+function create_repo_in_github() {
+    GITHUB_TOKEN=`cat $HOME/doc/gh.token`
+    curl -X POST --header 'Accept: application/vnd.github.v3+json' --header "Authorization: token $GITHUB_TOKEN" 'https://api.github.com/user/repos' -d '{"name":"'"$1"'"}'
+}
+
+function create_repo_in_gitee() {
+    GITEE_TOKEN=`cat $HOME/doc/ge.token`
+    curl -X POST --header 'Content-Type: application/json;charset=UTF-8' 'https://gitee.com/api/v5/user/repos' -d '{"access_token":"'"$GITEE_TOKEN"'","name":"'"$1"'","has_issues":"true","has_wiki":"true","can_comment":"true"}'
+}
+
+function create_repo_in_local_gitea() {
+    LOCAL_TOKEN=`cat $HOME/doc/local.token`
+    curl -X POST --header 'Content-Type: application/json;charset=UTF-8' --header "Authorization: token $LOCAL_TOKEN" 'http://127.0.0.1:3000/api/v1/user/repos' -d '{"name":"'"$1"'"}'
+}
+
+display_options
+
+while :
+do
+    echo -n "请输入序号执行操作："; read seqno
+    case $seqno in
+        1 ) name=`pwd|xargs basename`
+            create_repo_in_github $name
+            ;;
+        2 ) git push -u github master
+            ;;
+        3 ) name=`pwd|xargs basename`
+            create_repo_in_gitee $name
+            ;;
+        4 ) git push -u gitee master
+            ;;
+        5 ) name=`pwd|xargs basename`
+            create_repo_in_local_gitea $name
+            ;;
+        6 ) git push -u local master
+            ;;
+        7 ) git push -u github master
+            git push -u gitee master
+            git push -u local master
+            ;;
+        * ) echo 输入不符合要求
+    esac
+
+    display_options
+done
