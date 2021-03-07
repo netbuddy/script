@@ -1,13 +1,24 @@
 #!/bin/bash
 
+name=`pwd|xargs basename`
+
 function display_options() {
+    echo "0. 初始化仓库"
     echo "1. 根据当前目录名称在github中创建仓库"
     echo "2. 上传到github"
     echo "3. 根据当前目录名称在gitee中创建仓库"
     echo "4. 上传到gitee"
     echo "5. 根据当前目录名称在本地gitea中创建仓库"
     echo "6. 上传到本地gitea"
-    echo "7. 全部上传"
+    echo "7. 全部创建"
+    echo "8. 全部上传"
+}
+
+function git_init() {
+    git init
+    git remote add github git@github.com:netbuddy/${name}.git
+    git remote add gitee git@gitee.com:freebuddy/${name}.git
+    git remote add local git@local:public/${name}.git
 }
 
 function create_repo_in_github() {
@@ -31,22 +42,25 @@ while :
 do
     echo -n "请输入序号执行操作："; read seqno
     case $seqno in
-        1 ) name=`pwd|xargs basename`
-            create_repo_in_github $name
+        0 ) git_init
+            ;;
+        1 ) create_repo_in_github $name
             ;;
         2 ) git push -u github master
             ;;
-        3 ) name=`pwd|xargs basename`
-            create_repo_in_gitee $name
+        3 ) create_repo_in_gitee $name
             ;;
         4 ) git push -u gitee master
             ;;
-        5 ) name=`pwd|xargs basename`
-            create_repo_in_local_gitea $name
+        5 ) create_repo_in_local_gitea $name
             ;;
         6 ) git push -u local master
             ;;
-        7 ) git push -u github master
+        7 ) create_repo_in_github $name
+            create_repo_in_gitee $name
+            create_repo_in_local_gitea $name
+            ;;
+        8 ) git push -u github master
             git push -u gitee master
             git push -u local master
             ;;
